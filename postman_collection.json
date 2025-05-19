@@ -1,0 +1,363 @@
+{
+	"info": {
+		"_postman_id": "1234567-89ab-cdef-0123-456789abcdef",
+		"name": "Colección API Parcial2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Estudiantes",
+			"item": [
+				{
+					"name": "Crear Estudiante",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Creación exitosa de estudiante",
+									"pm.test(\"Debe crear estudiante con datos válidos\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.promedio).to.be.above(3.2);",
+									"    pm.expect(jsonData.semestre).to.be.at.least(4);",
+									"    // Almacenar el ID del estudiante creado para uso posterior",
+									"    if (jsonData.id) {",
+									"        pm.environment.set(\"studentId\", jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cedula\": 1234567890,\n    \"nombre\": \"Juan Pérez\",\n    \"semestre\": 6,\n    \"programa\": \"Ingeniería de Sistemas\",\n    \"promedio\": 4.20\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/estudiantes",
+							"host": ["{{baseUrl}}"],
+							"path": ["estudiantes"]
+						}
+					}
+				},
+				{
+					"name": "Crear Estudiante (Promedio bajo)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Validación de promedio mínimo",
+									"pm.test(\"Debe rechazar estudiante con promedio bajo\", function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.expect(pm.response.text()).to.include(\"promedio mayor a 3.2\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cedula\": 1234567890,\n    \"nombre\": \"Juan Bajo\",\n    \"semestre\": 6,\n    \"programa\": \"Ingeniería de Sistemas\",\n    \"promedio\": 3.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/estudiantes",
+							"host": ["{{baseUrl}}"],
+							"path": ["estudiantes"]
+						}
+					}
+				},
+				{
+					"name": "Eliminar Estudiante",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Eliminación exitosa de estudiante",
+									"pm.test(\"Debe eliminar estudiante sin proyectos activos\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/estudiantes/{{studentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["estudiantes", "{{studentId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Proyectos",
+			"item": [
+				{
+					"name": "Crear Proyecto",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Verificar que tenemos un ID de estudiante para el líder",
+									"if (!pm.environment.get(\"studentId\")) {",
+									"    console.log(\"Advertencia: studentId no establecido. Cree un estudiante primero para ser el líder del proyecto.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Creación exitosa de proyecto",
+									"pm.test(\"Debe crear proyecto con datos válidos\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.titulo.length).to.be.above(15);",
+									"    pm.expect(jsonData.presupuesto).to.be.above(0);",
+									"    // Almacenar el ID del proyecto creado para uso posterior",
+									"    if (jsonData.id) {",
+									"        pm.environment.set(\"projectId\", jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Sistema de Gestión Ambiental Inteligente\",\n    \"area\": \"Sostenibilidad\",\n    \"presupuesto\": 5000000,\n    \"notaFinal\": 0,\n    \"estado\": 1,\n    \"fechaInicio\": \"2024-03-15\",\n    \"fechaFin\": \"2024-12-15\",\n    \"lider\": {\"id\": {{studentId}}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/proyectos",
+							"host": ["{{baseUrl}}"],
+							"path": ["proyectos"]
+						}
+					}
+				},
+				{
+					"name": "Avanzar Estado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Avance exitoso de estado",
+									"pm.test(\"Debe avanzar el estado del proyecto\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.estado).to.be.at.most(4);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{projectId}}/avanzar",
+							"host": ["{{baseUrl}}"],
+							"path": ["proyectos", "{{projectId}}", "avanzar"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Estudiantes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Debe obtener estudiantes del proyecto\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/proyectos/{{projectId}}/estudiantes",
+							"host": ["{{baseUrl}}"],
+							"path": ["proyectos", "{{projectId}}", "estudiantes"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Profesores",
+			"item": [
+				{
+					"name": "Crear Profesor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Creación exitosa de profesor",
+									"pm.test(\"Debe crear profesor con datos válidos\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.extension.toString()).to.have.lengthOf(5);",
+									"    // Almacenar el ID del profesor creado para uso posterior",
+									"    if (jsonData.id) {",
+									"        pm.environment.set(\"professorId\", jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cedula\": 1234567890,\n    \"nombre\": \"Dra. María González\",\n    \"departamento\": \"Sistemas\",\n    \"extension\": 12345,\n    \"esParEvaluador\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/profesores",
+							"host": ["{{baseUrl}}"],
+							"path": ["profesores"]
+						}
+					}
+				},
+				{
+					"name": "Asignar Evaluador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Asignación exitosa de evaluador",
+									"pm.test(\"Debe asignar profesor como evaluador\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.esParEvaluador).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/profesores/{{professorId}}/asignar-evaluador",
+							"host": ["{{baseUrl}}"],
+							"path": ["profesores", "{{professorId}}", "asignar-evaluador"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Evaluaciones",
+			"item": [
+				{
+					"name": "Crear Evaluación",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Verificar que tenemos los IDs necesarios",
+									"if (!pm.environment.get(\"professorId\")) {",
+									"    console.log(\"Advertencia: professorId no establecido. Cree un profesor primero.\");",
+									"}",
+									"if (!pm.environment.get(\"projectId\")) {",
+									"    console.log(\"Advertencia: projectId no establecido. Cree un proyecto primero.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Prueba: Creación exitosa de evaluación",
+									"pm.test(\"Debe crear evaluación con evaluador válido\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"proyecto\": {\"id\": {{projectId}}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/evaluaciones/{{professorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["evaluaciones", "{{professorId}}"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000"
+		}
+	]
+} 

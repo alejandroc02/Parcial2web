@@ -8,6 +8,10 @@ import { EstudianteService } from './services/estudiante.service';
 import { ProfesorService } from './services/profesor.service';
 import { ProyectoService } from './services/proyecto.service';
 import { EvaluacionService } from './services/evaluacion.service';
+import { ProyectoController } from './controllers/proyecto.controller';
+import { EstudianteController } from './controllers/estudiante.controller';
+import { ProfesorController } from './controllers/profesor.controller';
+import { EvaluacionController } from './controllers/evaluacion.controller';
 
 @Module({
   imports: [
@@ -20,8 +24,15 @@ import { EvaluacionService } from './services/evaluacion.service';
       database: 'parcial2',
       entities: [Estudiante, Profesor, Proyecto, Evaluacion],
       synchronize: true,
+      autoLoadEntities: true,
     }),
     TypeOrmModule.forFeature([Estudiante, Profesor, Proyecto, Evaluacion]),
+  ],
+  controllers: [
+    EstudianteController,
+    ProyectoController,
+    ProfesorController,
+    EvaluacionController,
   ],
   providers: [
     EstudianteService,
@@ -29,5 +40,6 @@ import { EvaluacionService } from './services/evaluacion.service';
     ProyectoService,
     EvaluacionService,
   ],
+  exports: [TypeOrmModule]
 })
 export class AppModule {}

@@ -18,7 +18,7 @@ export class Estudiante {
   @Column()
   programa: string;
 
-  @Column()
+  @Column('decimal', { precision: 3, scale: 2 })
   promedio: number;
 
   @OneToMany(() => Proyecto, proyecto => proyecto.lider)
